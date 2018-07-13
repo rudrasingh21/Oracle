@@ -1,0 +1,24 @@
+8i: Java, Materialized Views, RMAN, Splitting between Standard and Enterprise editions.
+
+9i: RAC((Real Application Clusters))
+, Streams, 
+Flashback,
+, Data Guard, Oracle Managed Files
+
+10g: 
+Grid Computing, 
+ASM, Oracle Automatic Storage Management (ASM)
+AWR/ADDM/ASH, 
+ASMM,Automatic segment space management (ASSM) 
+Data Pump, 
+VPD
+
+11g: Total Recall, RAT, Parallel Execute, Active Data Guard, ASO/TDE, Data Vault, Audit Vault, Invisible Indexes, Data Redaction, Data Masking, built-in testing for changes, viewing tables back in time
+
+improved and automated memory management.
+
+better password-based authentication with mixed case passwords, encryption on tablespace-level 
+
+Virtual column
+
+12c: designed for the cloud, Pluggable Databases, In-Memory, Low maintenance, Adaptive Optimizer
