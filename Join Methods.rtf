@@ -1,0 +1,210 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset0 Courier New;}{\f2\fnil\fcharset2 Symbol;}}
+{\*\generator Riched20 10.0.16299}\viewkind4\uc1 
+\pard\sl240\slmult1\b\f0\fs22\lang9 *******************************Join Methods******************************\par
+\par
+Join Methods\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1\b0 Nested Loops Joins\par
+{\pntext\f2\'B7\tab}Hash Joins\par
+{\pntext\f2\'B7\tab}Sort Merge Joins\par
+{\pntext\f2\'B7\tab}Cartesian Joins\par
+{\pntext\f2\'B7\tab}Outer Joins\par
+
+\pard\sl240\slmult1\b\par
+About Join Methods:-\par
+\par
+\b0 A join is a statement that retrieves data from multiple tables. A join is characterized by multiple tables in the FROM clause.\par
+\par
+\b How the Query Optimizer Executes Join Statements:-\par
+\par
+\b0\tab To choose an execution plan for a join statement, the optimizer must make the following interrelated decisions:\par
+\par
+\b 1) Access paths:- \b0 Which from the possible access paths--> \par
+\tab\tab\tab\tab\i index or a full table scan or etc\i0\par
+\b 2) Join methods:- \b0 Which from the possible join methods -->\par
+\tab\tab\tab\tab\i Nested loop, sort merge, and hash joins. \par
+\tab\tab\tab\tab A Cartesian join requires one of the preceding join methods\par
+\b\i0 3) Join order:- \b0 To execute a statement that joins more than two tables, Oracle Database joins \tab\tab             two of the tables and then joins the resulting row source to the next table. \par
+\par
+\b How the Query Optimizer Chooses Execution Plans for Joins:-\b0\par
+\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 The optimizer first determines whether joining two or more tables definitely results in a row source containing at most one row.\par
+
+\pard\sl240\slmult1\tab\tab The optimizer recognizes such situations based on UNIQUE and PRIMARY KEY \tab\tab\tab constraints on the tables. If such a situation exists, then the optimizer places \tab\tab\tab these tables first in the join order. The optimizer then optimizes the join of the \tab\tab\tab remaining set of tables.\par
+\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 For join statements with outer join conditions, the table(\i driving table/outer table\i0 ) with the outer join operator must come after the other table in the condition in the join order.\par
+
+\pard\sl240\slmult1\i\tab\tab 1) \b driving table/outer table:- \b0\i0 The table to which other tables are joined.\par
+\tab\tab\par
+\tab\tab 2) \b inner table \i (probed)\i0 :- \b0\par
+\tab\tab\b\i\tab\b0\i0 In a nested loops join, the table that is not the \i outer table (driving \tab\tab\tab table)\i0 . For every row in the outer table, the database accesses all rows in the \tab\tab\tab inner table. The outer loop is for every row in the outer table and the inner \tab\tab\tab loop is for every row in the \i inner table(probed).\par
+\par
+\tab Example-->    select * from emp, dept where emp.deptno = dept.deptno; \par
+\par
+\tab In this case the \ul driving table might be DEPT\ulnone , we would \ul fetch rows from DEPT in a full \ulnone\tab\ul scan \ulnone and then \ul find the rows in EMP that match. DEPT is the driving table. \ulnone\par
+\par
+\tab The choice of a driving table made using many factors. For example, in the above query if \tab there was an index on DEPT(DEPTNO) but not EMP(DEPTNO), we would probably use \tab EMP as the driving table -- we would fetch rows from EMP and then using the \tab DEPT(DEPTNO) index -- find their matches in the DEPT table. Table sizes, cardinality of \tab column values, and other things can affect the choice of a driving table (eg: HINTS). \par
+\par
+\b The optimizer generates a set of execution plans, according to possible join orders, join methods, and available access paths.\par
+The optimizer then estimates the cost of each plan and chooses the one with the lowest cost. The optimizer \ul estimates costs \ulnone in the following ways:-\par
+\par
+
+\pard 
+{\pntext\f0 1.\tab}{\*\pn\pnlvlbody\pnf0\pnindent0\pnstart1\pndec{\pntxta.}}
+\fi-360\li720\sl240\slmult1 The cost of a nested loops join:- \b0\i0 depends on the cost of reading each selected row of the outer table and each of its matching rows of the inner table into memory.\line\par
+{\pntext\f0 2.\tab}\b\i The cost of a sort merge join:- \b0\i0 depends largely on the cost of reading all the sources into memory and sorting them.\line\tab\b optimizer also considers other factors:-\line\tab\tab\b0 A smaller sort area size is likely to increase the \tab cost for a sort merge \tab\tab\tab join because sorting takes more CPU time and I/O in a smaller sort \tab\tab\tab area.\line\par
+{\pntext\f0 3.\tab}\b\i The cost of a hash join:- \b0\i0 largely depends on the cost of building a hash table on one of the input sides to the join and using the rows from the other side of the join to probe it.\par
+
+\pard\sl240\slmult1\par
+A larger multiblock read count is likely to decrease the cost for a sort merge join in relation to a nested loops join.\par
+\par
+\i If the database can read many sequential blocks from disk in a single I/O, then an index on the inner table for the nested loops join is less likely to improve performance over a full table scan. The multiblock read count is specified by the initialization parameter DB_FILE_MULTIBLOCK_READ_COUNT.\i0\par
+\par
+\b Nested Loops Joins:- When?\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1\b0 The database joins small subsets of data.\par
+{\pntext\f2\'B7\tab}The join condition is an efficient method of accessing the second table.\par
+{\pntext\f2\'B7\tab}You drive from the outer loop to the inner loop, so the order of tables in the execution plan is important.\par
+
+\pard\sl240\slmult1\par
+\b\i     \tab New Implementation for Nested Loops Joins:-\par
+\par
+\tab\b0 --> The new implementation for nested loops joins reduces overall latency for \tab\tab\tab       physical I/O. \par
+\tab --> When an index or a table block is not in the buffer cache and is needed to \tab\tab\tab       process the join, a physical I/O is required. \par
+\tab --> The current release of Oracle Database can batch multiple physical I/O \tab\tab\tab       requests and process them using a vector I/O instead of processing them one \tab\tab\tab       at a time.\par
+\tab\par
+\b\i0\f1 IN NESTED LOOP driving table is read once AND\par
+for each row in the driving table, the inner table is processed once.  \par
+The \ul smaller the inner result set\ulnone , the faster the Nested Loop will perform.\par
+\b0\f0\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1\b Larger result set should be the driving table\b0\par
+{\pntext\f2\'B7\tab}Smaller result set should be the inner table\par
+{\pntext\f2\'B7\tab}Rows returned to the result set that qualify the driving WHERE clause\i\par
+
+\pard\sl240\slmult1\par
+\b\i0 Hash joins -\par
+\b0 s\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1\b The driving table should be the smaller\b0 .\par
+{\pntext\f2\'B7\tab}if they are joined using an equijoin.\par
+{\pntext\f2\'B7\tab}A large amount of data must be joined.\par
+{\pntext\f2\'B7\tab}\b Larger result set should be the inner table.\par
+{\pntext\f2\'B7\tab}Oracle loads the driving table into a hash table first\b0 , then looks up each row in this hash table in the inner table \par
+{\pntext\f2\'B7\tab}In a hash join, the Oracle database does a \b full-scan of the driving table, builds a RAM hash table.\par
+{\pntext\f2\'B7\tab}\b0 Then probes for matching rows in the other table. For certain types of \tab SQL, the hash join will execute faster than a nested loop join, but the hash join uses more RAM resources. \par
+
+\pard\sl240\slmult1\par
+\b NOTE:- \b0 It is difficult to predict what join technique will be fastest a priori, so many Oracle \tab tuning experts will test-run the SQL with each different table join method and time the \tab speed with the SQL*Plus \b\i "set timing on" \b0\i0 command.\par
+\par
+\b Merge Join -\b0\par
+\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 Both result sets should be larger in size.\par
+{\pntext\f2\'B7\tab}Doesn\rquote t matter which one is first.\par
+{\pntext\f2\'B7\tab}It doesn\rquote t really matter which table is first and second. \par
+{\pntext\f2\'B7\tab}Both tables are sorted.Then the returning rows are merged together and passed to the next step on the explain plan tree.\par
+
+\pard\sl240\slmult1\par
+\b Sort Merge Joins -\par
+\par
+
+\pard\li360\sl240\slmult1\b0 Sort merge joins can join rows from two independent sources. \par
+hash joins perform better than sort merge joins. However, sort merge joins can perform better than hash joins if both of the following conditions exist:\tab\tab\tab\tab\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li1080\sl240\slmult1 The row sources are sorted.\par
+{\pntext\f2\'B7\tab}A sort operation is not required.\par
+{\pntext\f2\'B7\tab}useful when the join condition between two tables is an inequality condition such as <, <=, >, or >=\par
+
+\pard\sl240\slmult1         In a merge join, there is no concept of a driving table. The join consists of two steps:\par
+\par
+
+\pard\li720\sl240\slmult1\i Sort join operation--> \i0 Both the inputs are sorted on the join key.\par
+\par
+\i Merge join operation--> \i0 The sorted lists are merged.\par
+\par
+\b When the Optimizer Considers Sort Merge Joins:-\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li1440\sl240\slmult1\b0 The join condition between two tables is not an equijoin.\par
+{\pntext\f2\'B7\tab}Because of sorts required by other operations, the optimizer finds it is cheaper to use a sort merge than a hash join.\par
+
+\pard\sl240\slmult1\par
+\b\fs28 HINTS for JOIN Methods:-\par
+\par
+\fs22 USE_NL :-\par
+\tab\b0 Causes Oracle to join each specified table to another row source with a nested loops \tab join using the specified table as the inner table.\b\par
+\par
+\f1\tab\tab\b0 SELECT DISTINCT s.srvr_id\par
+\tab\tab FROM servers s, serv_inst i\par
+\tab\tab WHERE s.srvr_id = i.srvr_id;\par
+\b\par
+\tab\tab\b0 SELECT\b  /*+ USE_NL (i s) */ \b0 DISTINCT s.srvr_id\b\par
+\tab\tab\b0 FROM servers s, serv_inst i\par
+\tab\tab WHERE s.srvr_id = i.srvr_id;\par
+\b\f0\par
+/*+ \f1 USE_NL (i s) \f0 */  short-hand for ==>  /*+ \f1 USE_NL (i) USE_NL (s) \f0 */\par
+\par
+Question :- Can we use \f1 /*+ USE_NL (i) */ or /*+ USE_NL (s) */ ???\par
+\f0\par
+USE_NL_WITH_INDEX :-\par
+\tab\tab\tab\b0 The related hint \i USE_NL_WITH_INDEX\i0  hint instructs the optimizer to join the specified table to another row source using a nested loops join. The join uses the following:\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 The specified table as the inner table\par
+{\pntext\f2\'B7\tab}The specified index as the access method\par
+
+\pard\sl240\slmult1\par
+
+\pard\li1440\sl240\slmult1\f1 SELECT *\par
+FROM orders h, order_items l\par
+WHERE l.order_id = h.order_id\par
+AND l.order_id > 3500;\par
+
+\pard\sl240\slmult1\par
+
+\pard\li1440\sl240\slmult1 SELECT \b /*+ USE_NL_WITH_INDEX(l item_order_ix) */ *\par
+\b0 FROM orders h, order_items l\par
+WHERE l.order_id = h.order_id\par
+AND l.order_id > 3500;\par
+\par
+\par
+
+\pard\sl240\slmult1\b\f0 NO_USE_NL:-\par
+\tab\tab\b0 Instructs the optimizer to exclude nested loops joins when joining each specified table to another row source using the specified table as the inner table.\par
+\par
+\b USE_HASH:-\par
+\tab\b0\tab Causes Oracle to join each specified table with another row source with a hash \tab\tab join.\par
+\tab\tab\par
+\tab\tab\f1 SELECT DISTINCT s.srvr_id\par
+
+\pard\li1440\sl240\slmult1 FROM servers s, serv_inst i\par
+WHERE s.srvr_id = i.srvr_id;\par
+
+\pard\sl240\slmult1\par
+
+\pard\li1440\sl240\slmult1 SELECT \b /*+ USE_HASH (s i) */ \b0 DISTINCT s.srvr_id\par
+FROM servers s, serv_inst i\par
+WHERE s.srvr_id = i.srvr_id;\par
+\par
+
+\pard\sl240\slmult1\b\f0 NO_USE_HASH\b0 :- Instruct to exclude.\par
+\par
+\b USE_MERGE:- Sort Merge Join Hint \par
+\par
+
+\pard\li1440\sl240\slmult1\b0\f1 SELECT *\par
+FROM employees e, departments d\par
+WHERE e.department_id = d.department_id;\par
+\par
+SELECT \b /*+ USE_MERGE(e d) */ \b0 *\par
+FROM employees e, departments d\par
+WHERE e.department_id = d.department_id;\par
+
+\pard\sl240\slmult1\f0\par
+\par
+\par
+\par
+\b\i\par
+}
+ 
